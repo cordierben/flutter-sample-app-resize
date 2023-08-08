@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+    <meta name="description" content="Embed the Flutter web app">
+</head>
+<body style="margin:0;padding:0;">
+    <div style="height:10vh; width:100%; display:flex; align-items: center;">
+        <button style="margin:0 20px; padding:8px 25px; background:#FFF; cursor:pointer;" id="map-button">Map</button>
+        <button style="margin:0 20px; padding:8px 25px; background:#FFF; cursor:pointer;" id="login-button">Login</button>
+        <button style="margin:0 20px; padding:8px 25px; background:#FFF; cursor:pointer; display:none;" id="account-button">Account</button>
+        <button style="margin:0 20px; padding:8px 25px; background:#FFF; cursor:pointer;" id="document-button">Documents</button>
+        <span id="username-container" style="display:none; margin: 20px 20px 20px auto;">Bonjour, <span id="username"></span></span>
+    </div>
+    <iframe id="flutter-container" src="./build/web/index.html" style="height:90vh; width:100%;" frameborder="0"></iframe>
+
+<script type="text/javascript">
+document.getElementById("map-button").addEventListener("click", function() {
+    const iframe = document.getElementById("flutter-container");
+    iframe?.contentWindow?.postMessage(JSON.stringify({'type':'navigation','path':'map','action':'navigate'}), "*");
+    iframe?.contentWindow?.postMessage(JSON.stringify({'type':'getSize', 'id': 'map'}), "*");
+});
+
+document.getElementById("login-button").addEventListener("click", function() {
+    const iframe = document.getElementById("flutter-container");
+    iframe?.contentWindow?.postMessage(JSON.stringify({'type':'navigation','path':'login','action':'navigate'}), "*");
+    iframe?.contentWindow?.postMessage(JSON.stringify({'type':'getSize', 'id': 'login'}), "*");
+});
+
+document.getElementById("account-button").addEventListener("click", function() {
+    const iframe = document.getElementById("flutter-container");
+    iframe?.contentWindow?.postMessage(JSON.stringify({'type':'navigation','path':'account','action':'navigate'}), "*");
+    iframe?.contentWindow?.postMessage(JSON.stringify({'type':'getSize', 'id': 'account'}), "*");
+});
+
+document.getElementById("document-button").addEventListener("click", function() {
+    const iframe = document.getElementById("flutter-container");
+    iframe?.contentWindow?.postMessage(JSON.stringify({'type':'navigation','path':'documents','action':'navigate'}), "*");
+    iframe?.contentWindow?.postMessage(JSON.stringify({'type':'getSize', 'id': 'documents'}), "*");
+});
+
+window.addEventListener("message", function(event) {
+    var data = JSON.parse(event.data);
+
+    if (data.type == 'userAuthentication' && data.userAuthenticated == true) {
+        document.getElementById("account-button").style.display = "block";
+        document.getElementById("login-button").style.display = "none";
+        document.getElementById("username-container").style.display = "block";
+        document.getElementById("username").innerHTML = data.user.identity.firstName + " " + data.user.identity.lastName;
+    } else if (data.type == 'userAuthentication' && data.userAuthenticated == false) {
+        document.getElementById("account-button").style.display = "none";
+        document.getElementById("login-button").style.display = "block";
+        document.getElementById("username-container").style.display = "none";
+    } else if (data.type == 'pageHeight' && data.id == "map") {
+        document.getElementById("flutter-container").style.height = "90vh";
+    } else if (data.type=="pageHeight") {
+        document.getElementById("flutter-container").style.height = parseInt(data.pageHeight) + 100 + "px";
+    } else if (data.type == 'pageLoaded') {
+        iframe?.contentWindow?.postMessage(JSON.stringify({'type':'getSize', 'id': data.id}), "*");
+    }
+}, false);
+</script>
+</body>
+</html>
